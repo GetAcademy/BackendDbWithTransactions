@@ -43,8 +43,8 @@ app.MapPost("/counter/increment", async (CounterIncrement input) =>
 
         // 3) Lagre historikk
         await connection.ExecuteAsync(
-            "INSERT INTO counter_history(CounterId, NewValue, CreatedUtc) VALUES (@Id, @NewValue, @Utc)",
-            new { Id = 1, NewValue = newValue, Utc = DateTime.UtcNow.ToString("O") },
+            "INSERT INTO counter_history(Value, CreatedUtc, Who) VALUES (@NewValue, @Utc, @Who)",
+            new { NewValue = newValue, Utc = DateTime.UtcNow.ToString("O"), Who = input.who },
             transaction);
 
         transaction.Commit();
