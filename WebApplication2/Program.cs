@@ -33,6 +33,8 @@ app.MapPost("/counter/increment", async (CounterIncrement input) =>
 
         var newValue = counter + 1;
 
+        await Task.Delay(250);
+
         // 2) Oppdater teller
         await connection.ExecuteAsync(
             "UPDATE Counters SET Value = @NewValue WHERE Id = @Id",
