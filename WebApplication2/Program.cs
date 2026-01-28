@@ -5,7 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 app.UseHttpsRedirection();
 
-var connectionString = "Data Source=bin/Debug/net10.0/data/app.db";
+var dbPath = Path.Combine(AppContext.BaseDirectory, "data", "app.db");
+var connectionString = $"Data Source={dbPath}";
 
 EnsureCounterTables(connectionString);
 
