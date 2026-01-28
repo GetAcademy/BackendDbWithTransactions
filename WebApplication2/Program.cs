@@ -19,35 +19,39 @@ app.MapPost("/counter/increment", async (CounterIncrement input) =>
         return Results.BadRequest("who kan ikke være tom");
 
     using var connection = new SqliteConnection(connectionString);
+    await connection.OpenAsync();
 
-    // 1) Les nåværende verdi
-    var current = await connection.ExecuteScalarAsync<long>(
-        "SELECT value FROM counter WHERE id = 1;"
-    );
+    using var transaction = connection.BeginTransaction();
 
-    // 2) Regn ut ny verdi
-    var next = current + 1;
-
-    // 3) Bevisst pause for å gjøre overlap lett å få til
-    await Task.Delay(2000);
-
-    // 4) Lagre historikk (hvem -> hvilken verdi)
-    await connection.ExecuteAsync(@"
-        INSERT INTO counter_history (who, value, createdUtc)
-        VALUES (@who, @value, @createdUtc);
-    ", new
+    try
     {
-        who = input.who,
-        value = next,
-        createdUtc = DateTime.UtcNow.ToString("O")
-    });
+        // 1) Les teller
+        var counter = await connection.QuerySingleAsync<int>(
+            "SELECT Value FROM Counters WHERE Id = @Id",
+            new { Id = 1 },
+            transaction);
 
-    // 5) Oppdater telleren (lost update kan skje her)
-    await connection.ExecuteAsync(@"
-        UPDATE counter SET value = @value WHERE id = 1;
-    ", new { value = next });
+        var newValue = counter + 1;
 
-    return Results.Ok(new { value = next });
+        // 2) Oppdater teller
+        await connection.ExecuteAsync(
+            "UPDATE Counters SET Value = @NewValue WHERE Id = @Id",
+            new { Id = 1, NewValue = newValue },
+            transaction);
+
+        // 3) Lagre historikk
+        await connection.ExecuteAsync(
+            "INSERT INTO CounterHistory(CounterId, NewValue, CreatedUtc) VALUES (@Id, @NewValue, @Utc)",
+            new { Id = 1, NewValue = newValue, Utc = DateTime.UtcNow.ToString("O") },
+            transaction);
+
+        transaction.Commit();
+    }
+    catch
+    {
+        transaction.Rollback();
+        throw;
+    }
 });
 
 // (Valgfritt, men veldig nyttig i timen) – se status + siste historikk
