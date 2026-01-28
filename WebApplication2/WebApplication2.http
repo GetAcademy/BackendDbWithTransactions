@@ -1,0 +1,15 @@
+@WebApplication2_HostAddress = https://localhost:7190
+
+GET {{WebApplication2_HostAddress}}/counter
+Accept: application/json
+
+###
+
+POST {{WebApplication2_HostAddress}}/counter/increment
+Accept: application/json
+Content-type: application/json
+
+{
+    "who": "Per"
+}
+
