@@ -27,7 +27,7 @@ app.MapPost("/counter/increment", async (CounterIncrement input) =>
     {
         // 1) Les teller
         var counter = await connection.QuerySingleAsync<int>(
-            "SELECT Value FROM Counters WHERE Id = @Id",
+            "SELECT Value FROM counter WHERE Id = @Id",
             new { Id = 1 },
             transaction);
 
@@ -37,13 +37,13 @@ app.MapPost("/counter/increment", async (CounterIncrement input) =>
 
         // 2) Oppdater teller
         await connection.ExecuteAsync(
-            "UPDATE Counters SET Value = @NewValue WHERE Id = @Id",
+            "UPDATE counter SET Value = @NewValue WHERE Id = @Id",
             new { Id = 1, NewValue = newValue },
             transaction);
 
         // 3) Lagre historikk
         await connection.ExecuteAsync(
-            "INSERT INTO CounterHistory(CounterId, NewValue, CreatedUtc) VALUES (@Id, @NewValue, @Utc)",
+            "INSERT INTO counter_history(CounterId, NewValue, CreatedUtc) VALUES (@Id, @NewValue, @Utc)",
             new { Id = 1, NewValue = newValue, Utc = DateTime.UtcNow.ToString("O") },
             transaction);
 
