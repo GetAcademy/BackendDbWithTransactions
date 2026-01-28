@@ -33,13 +33,13 @@ app.MapPost("/counter/increment", async (CounterIncrement input) =>
 
         var newValue = counter + 1;
 
-        await Task.Delay(2000);
-
         // 2) Oppdater teller
         await connection.ExecuteAsync(
             "UPDATE counter SET Value = @NewValue WHERE Id = @Id",
             new { Id = 1, NewValue = newValue },
             transaction);
+
+        await Task.Delay(2000);
 
         // 3) Lagre historikk
         await connection.ExecuteAsync(
