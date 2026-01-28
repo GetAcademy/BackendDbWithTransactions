@@ -46,11 +46,20 @@ app.MapPost("/counter/increment", async (CounterIncrement input) =>
             transaction);
 
         transaction.Commit();
+        return Results.Ok(new { message = "Teller oppdatert", value = newValue });
     }
-    catch
+    catch(Exception ex)
     {
-        transaction.Rollback();
-        throw;
+        try
+        {
+            transaction.Rollback();
+        }
+        catch { /* rollback kan feile hvis DB er ødelagt */ }
+        return Results.Problem(
+            detail: ex.Message,
+            title: "Kunne ikke oppdatere teller",
+            statusCode: 500
+        );
     }
 });
 
